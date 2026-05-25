@@ -1,0 +1,209 @@
+name: AI/LLM QA Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
+  MOCK_SERVER_URL: "http://localhost:8000"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: Python test layers (schema, hallucination, toxicity, contract)
+  # ---------------------------------------------------------------------------
+  python-tests:
+    name: Output Validation, Hallucination & Contract Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Start mock recommendation server
+        run: |
+          uvicorn mock_server.app:app --host 0.0.0.0 --port 8000 &
+          echo "Waiting for server to start..."
+          sleep 5
+          curl --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8000/v1/health
+
+      - name: Run output validation tests (Pydantic schema)
+        run: pytest tests/output_validation/ -v --tb=short -m schema
+
+      - name: Run hallucination detection tests
+        run: pytest tests/hallucination/ -v --tb=short -m hallucination
+
+      - name: Run toxicity safety gate
+        env:
+          PERSPECTIVE_API_KEY: ${{ secrets.PERSPECTIVE_API_KEY }}
+        run: |
+          pytest tests/toxicity/ -v --tb=short -m toxicity
+          # Note: toxicity tests skip gracefully if PERSPECTIVE_API_KEY is not set
+
+      - name: Generate consumer Pact contracts
+        run: pytest tests/contract/consumer_test.py -v --tb=short -m contract
+
+      - name: Verify provider honours Pact contracts
+        run: pytest tests/contract/provider_test.py -v --tb=short -m contract
+
+      - name: Upload Pact files as artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pact-contracts
+          path: pacts/
+          retention-days: 30
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pytest-results
+          path: .pytest_cache/
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # Job 2: Prompt regression (PromptFoo)
+  # ---------------------------------------------------------------------------
+  prompt-regression:
+    name: Prompt Regression (PromptFoo)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Set up Python for mock server
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Start mock recommendation server
+        run: |
+          uvicorn mock_server.app:app --host 0.0.0.0 --port 8000 &
+          sleep 5
+          curl --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8000/v1/health
+
+      - name: Run PromptFoo prompt regression evaluation
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ env.MOCK_SERVER_URL }}/v1
+        run: |
+          npx promptfoo eval \
+            --config prompt_regression/promptfooconfig.yaml \
+            --ci \
+            --no-cache
+        # Fails if pass rate drops below 80% (configured in promptfooconfig.yaml)
+
+      - name: Upload PromptFoo results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: promptfoo-results
+          path: .promptfoo/
+          retention-days: 30
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Performance / Latency SLOs (k6)
+  # ---------------------------------------------------------------------------
+  performance-slos:
+    name: Latency SLOs (k6)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring \
+            --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+
+      - name: Set up Python for mock server
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Start mock recommendation server
+        run: |
+          uvicorn mock_server.app:app --host 0.0.0.0 --port 8000 &
+          sleep 5
+          curl --retry 5 --retry-delay 2 --retry-connrefused http://localhost:8000/v1/health
+
+      - name: Run k6 latency SLO tests
+        run: |
+          k6 run \
+            -e BASE_URL=${{ env.MOCK_SERVER_URL }} \
+            --out json=k6-results.json \
+            performance/k6_load_test.js
+        # Fails if p95 > 2000ms, p99 > 4000ms, or error rate > 1%
+
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-results
+          path: k6-results.json
+          retention-days: 30
+
+  # ---------------------------------------------------------------------------
+  # Job 4: Final gate — all jobs must pass
+  # ---------------------------------------------------------------------------
+  all-gates-passed:
+    name: All QA Gates Passed
+    runs-on: ubuntu-latest
+    needs: [python-tests, prompt-regression, performance-slos]
+    if: always()
+
+    steps:
+      - name: Check all jobs passed
+        run: |
+          if [[ "${{ needs.python-tests.result }}" != "success" ]]; then
+            echo "❌ Python tests (schema/hallucination/toxicity/contract) FAILED"
+            exit 1
+          fi
+          if [[ "${{ needs.prompt-regression.result }}" != "success" ]]; then
+            echo "❌ Prompt regression FAILED"
+            exit 1
+          fi
+          if [[ "${{ needs.performance-slos.result }}" != "success" ]]; then
+            echo "❌ Performance SLOs FAILED"
+            exit 1
+          fi
+          echo "✅ All QA gates passed — safe to deploy"

@@ -1,0 +1,29 @@
+{
+  "name": "ai-ecommerce-qa-strategy",
+  "version": "1.0.0",
+  "description": "AI/LLM test strategy for an e-commerce product recommendation engine",
+  "scripts": {
+    "eval": "promptfoo eval --config prompt_regression/promptfooconfig.yaml",
+    "eval:ci": "promptfoo eval --config prompt_regression/promptfooconfig.yaml --ci",
+    "eval:view": "promptfoo view"
+  },
+  "devDependencies": {
+    "promptfoo": "^0.82.0"
+  },
+  "keywords": [
+    "ai-testing",
+    "llm-testing",
+    "prompt-regression",
+    "promptfoo",
+    "qa-automation",
+    "ecommerce",
+    "hallucination-detection",
+    "non-deterministic-testing"
+  ],
+  "author": "Darrius Jones <https://www.linkedin.com/in/darrius-jones-28226b350/>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darrius-jones/ai-ecommerce-qa-strategy.git"
+  }
+}

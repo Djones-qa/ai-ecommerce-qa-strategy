@@ -1,0 +1,126 @@
+{
+  "version": "1.0.0",
+  "description": "Known product catalog for the AI recommendation engine. Any product ID, name, or price outside this catalog is considered a hallucination.",
+  "products": [
+    {
+      "product_id": "SHOE-001",
+      "name": "AeroStride Running Shoes",
+      "category": "Footwear",
+      "price": 129.99,
+      "brand": "AeroFit",
+      "in_stock": true
+    },
+    {
+      "product_id": "SHOE-002",
+      "name": "UrbanWalk Casual Sneakers",
+      "category": "Footwear",
+      "price": 89.99,
+      "brand": "UrbanStep",
+      "in_stock": true
+    },
+    {
+      "product_id": "SHOE-003",
+      "name": "TrailBlaze Hiking Boots",
+      "category": "Footwear",
+      "price": 179.99,
+      "brand": "OutdoorPro",
+      "in_stock": true
+    },
+    {
+      "product_id": "ELEC-001",
+      "name": "SoundWave Pro Wireless Headphones",
+      "category": "Electronics",
+      "price": 249.99,
+      "brand": "SoundWave",
+      "in_stock": true
+    },
+    {
+      "product_id": "ELEC-002",
+      "name": "ClearView 4K Monitor 27-inch",
+      "category": "Electronics",
+      "price": 399.99,
+      "brand": "ClearView",
+      "in_stock": false
+    },
+    {
+      "product_id": "ELEC-003",
+      "name": "SwiftCharge 65W USB-C Hub",
+      "category": "Electronics",
+      "price": 59.99,
+      "brand": "SwiftTech",
+      "in_stock": true
+    },
+    {
+      "product_id": "APRL-001",
+      "name": "FlexFit Performance T-Shirt",
+      "category": "Apparel",
+      "price": 34.99,
+      "brand": "FlexFit",
+      "in_stock": true
+    },
+    {
+      "product_id": "APRL-002",
+      "name": "ComfortZone Yoga Pants",
+      "category": "Apparel",
+      "price": 64.99,
+      "brand": "ZenWear",
+      "in_stock": true
+    },
+    {
+      "product_id": "APRL-003",
+      "name": "AllWeather Windbreaker Jacket",
+      "category": "Apparel",
+      "price": 119.99,
+      "brand": "WeatherShield",
+      "in_stock": true
+    },
+    {
+      "product_id": "HOME-001",
+      "name": "EcoBreeze Air Purifier",
+      "category": "Home",
+      "price": 199.99,
+      "brand": "EcoHome",
+      "in_stock": true
+    },
+    {
+      "product_id": "HOME-002",
+      "name": "SmartBrew Coffee Maker",
+      "category": "Home",
+      "price": 149.99,
+      "brand": "BrewMaster",
+      "in_stock": true
+    },
+    {
+      "product_id": "HOME-003",
+      "name": "LumiGlow Smart LED Desk Lamp",
+      "category": "Home",
+      "price": 79.99,
+      "brand": "LumiTech",
+      "in_stock": true
+    },
+    {
+      "product_id": "SPRT-001",
+      "name": "PowerGrip Resistance Bands Set",
+      "category": "Sports",
+      "price": 29.99,
+      "brand": "PowerFit",
+      "in_stock": true
+    },
+    {
+      "product_id": "SPRT-002",
+      "name": "HydroFlow 32oz Water Bottle",
+      "category": "Sports",
+      "price": 24.99,
+      "brand": "HydroLife",
+      "in_stock": true
+    },
+    {
+      "product_id": "SPRT-003",
+      "name": "ProForm Adjustable Dumbbells",
+      "category": "Sports",
+      "price": 299.99,
+      "brand": "ProForm",
+      "in_stock": true
+    }
+  ]
+}

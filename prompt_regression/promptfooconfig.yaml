@@ -1,0 +1,170 @@
+# PromptFoo Prompt Regression Configuration
+# ------------------------------------------
+# Evaluates the recommendation prompt against a suite of test cases.
+# Fails CI if the pass rate drops below the configured threshold.
+#
+# Run locally:   npx promptfoo eval
+# Run in CI:     npx promptfoo eval --ci
+# View results:  npx promptfoo view
+
+description: "AI Product Recommendation Engine — Prompt Regression Suite"
+
+# ---------------------------------------------------------------------------
+# Providers (LLM backends to test against)
+# ---------------------------------------------------------------------------
+providers:
+  - id: openai:gpt-4o-mini
+    config:
+      temperature: 0.2        # Low temperature for more deterministic outputs
+      max_tokens: 1024
+      response_format:
+        type: json_object     # Force JSON output mode
+
+# ---------------------------------------------------------------------------
+# Prompts
+# ---------------------------------------------------------------------------
+prompts:
+  - file://prompts/recommendation.txt
+
+# ---------------------------------------------------------------------------
+# Default test variables
+# ---------------------------------------------------------------------------
+defaultTest:
+  vars:
+    max_results: 3
+
+# ---------------------------------------------------------------------------
+# Test cases
+# ---------------------------------------------------------------------------
+tests:
+  # --- Happy path: running gear ---
+  - description: "Returns relevant footwear for a runner"
+    vars:
+      user_id: "user-001"
+      context: "training for my first marathon, need running shoes"
+      max_results: 3
+    assert:
+      - type: is-json
+        description: "Response must be valid JSON"
+      - type: javascript
+        value: "output.includes('SHOE') || output.includes('Footwear') || output.includes('Running')"
+        description: "Should recommend footwear or running-related products"
+      - type: javascript
+        filePath: scorers/hallucination_scorer.js
+        description: "All recommended products must exist in the catalog"
+
+  # --- Happy path: electronics ---
+  - description: "Returns relevant electronics for a home office setup"
+    vars:
+      user_id: "user-002"
+      context: "setting up a home office, need monitor and accessories"
+      max_results: 3
+    assert:
+      - type: is-json
+        description: "Response must be valid JSON"
+      - type: javascript
+        value: "output.includes('ELEC') || output.includes('Electronics') || output.includes('Monitor')"
+        description: "Should recommend electronics"
+      - type: javascript
+        filePath: scorers/hallucination_scorer.js
+        description: "All recommended products must exist in the catalog"
+
+  # --- Happy path: sports/fitness ---
+  - description: "Returns fitness equipment for a gym user"
+    vars:
+      user_id: "user-003"
+      context: "building a home gym on a budget"
+      max_results: 3
+    assert:
+      - type: is-json
+        description: "Response must be valid JSON"
+      - type: javascript
+        value: "output.includes('SPRT') || output.includes('Sports') || output.includes('gym') || output.includes('fitness')"
+        description: "Should recommend sports or fitness products"
+      - type: javascript
+        filePath: scorers/hallucination_scorer.js
+        description: "All recommended products must exist in the catalog"
+
+  # --- Schema validation: required fields ---
+  - description: "Response contains all required fields"
+    vars:
+      user_id: "user-004"
+      context: "looking for a gift for a coffee lover"
+      max_results: 2
+    assert:
+      - type: is-json
+        description: "Response must be valid JSON"
+      - type: javascript
+        value: |
+          const data = JSON.parse(output);
+          const recs = Array.isArray(data) ? data : (data.recommendations || []);
+          return recs.length > 0 && recs.every(r =>
+            r.product_id && r.name && r.category &&
+            typeof r.price === 'number' && r.price > 0 &&
+            typeof r.confidence_score === 'number' &&
+            r.confidence_score >= 0 && r.confidence_score <= 1 &&
+            r.reason && r.reason.length >= 10
+          );
+        description: "All recommendations must have required fields with valid values"
+      - type: javascript
+        filePath: scorers/hallucination_scorer.js
+        description: "All recommended products must exist in the catalog"
+
+  # --- Edge case: vague context ---
+  - description: "Handles vague user context gracefully"
+    vars:
+      user_id: "user-005"
+      context: "I want something nice"
+      max_results: 2
+    assert:
+      - type: is-json
+        description: "Response must be valid JSON even for vague input"
+      - type: javascript
+        filePath: scorers/hallucination_scorer.js
+        description: "Even for vague input, products must be from the catalog"
+
+  # --- Edge case: max_results=1 ---
+  - description: "Respects max_results=1"
+    vars:
+      user_id: "user-006"
+      context: "wireless headphones for commuting"
+      max_results: 1
+    assert:
+      - type: is-json
+        description: "Response must be valid JSON"
+      - type: javascript
+        value: |
+          const data = JSON.parse(output);
+          const recs = Array.isArray(data) ? data : (data.recommendations || []);
+          return recs.length <= 1;
+        description: "Should return at most 1 recommendation"
+      - type: javascript
+        filePath: scorers/hallucination_scorer.js
+        description: "All recommended products must exist in the catalog"
+
+  # --- Regression: no duplicate products ---
+  - description: "Does not recommend the same product twice"
+    vars:
+      user_id: "user-007"
+      context: "complete workout outfit and gear"
+      max_results: 5
+    assert:
+      - type: is-json
+        description: "Response must be valid JSON"
+      - type: javascript
+        value: |
+          const data = JSON.parse(output);
+          const recs = Array.isArray(data) ? data : (data.recommendations || []);
+          const ids = recs.map(r => r.product_id);
+          return ids.length === new Set(ids).size;
+        description: "No duplicate product_ids in a single response"
+      - type: javascript
+        filePath: scorers/hallucination_scorer.js
+        description: "All recommended products must exist in the catalog"
+
+# ---------------------------------------------------------------------------
+# CI threshold — fail the build if pass rate drops below 80%
+# ---------------------------------------------------------------------------
+commandLineOptions:
+  ci: true
+  passThreshold: 0.8
