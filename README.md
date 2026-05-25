@@ -5,7 +5,7 @@
 [![Contract Testing](https://img.shields.io/badge/contract--testing-pact-orange)](https://docs.pact.io)
 [![Performance](https://img.shields.io/badge/performance-k6-7D64FF)](https://k6.io)
 [![Safety Gate](https://img.shields.io/badge/safety-perspective--api-red)](https://perspectiveapi.com)
-[![CI](https://github.com/darrius-jones/ai-ecommerce-qa-strategy/actions/workflows/ci.yml/badge.svg)](https://github.com/darrius-jones/ai-ecommerce-qa-strategy/actions/workflows/ci.yml)
+[![CI](https://github.com/Djones-qa/ai-ecommerce-qa-strategy/actions/workflows/ci.yml/badge.svg)](https://github.com/Djones-qa/ai-ecommerce-qa-strategy/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue?logo=python)](https://www.python.org)
 
@@ -150,7 +150,7 @@ ai-ecommerce-qa-strategy/
 ### Install
 
 ```bash
-git clone https://github.com/darrius-jones/ai-ecommerce-qa-strategy.git
+git clone https://github.com/Djones-qa/ai-ecommerce-qa-strategy.git
 cd ai-ecommerce-qa-strategy
 
 # Python dependencies
@@ -251,7 +251,7 @@ All gates must pass for the build to be green.
 **Darrius Jones**
 QA Engineer | AI/LLM Testing Specialist
 
-[![GitHub](https://img.shields.io/badge/GitHub-darrius--jones-181717?logo=github&style=for-the-badge)](https://github.com/darrius-jones)
+[![GitHub](https://img.shields.io/badge/GitHub-Djones--qa-181717?logo=github&style=for-the-badge)](https://github.com/Djones-qa)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Darrius%20Jones-0A66C2?logo=linkedin&style=for-the-badge)](https://www.linkedin.com/in/darrius-jones-28226b350/)
 
 ---
