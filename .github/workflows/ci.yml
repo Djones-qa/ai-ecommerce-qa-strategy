@@ -111,7 +111,7 @@ jobs:
 
       - name: Run PromptFoo prompt regression evaluation
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.driftwatch }}
           OPENAI_BASE_URL: ${{ env.MOCK_SERVER_URL }}/v1
         run: |
           npx promptfoo eval \
