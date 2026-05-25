@@ -5,7 +5,7 @@
 [![Contract Testing](https://img.shields.io/badge/contract--testing-pact-orange)](https://docs.pact.io)
 [![Performance](https://img.shields.io/badge/performance-k6-7D64FF)](https://k6.io)
 [![Safety Gate](https://img.shields.io/badge/safety-perspective--api-red)](https://perspectiveapi.com)
-[![CI](https://github.com/Djones-qa/ai-ecommerce-qa-strategy/actions/workflows/ci.yml/badge.svg)](https://github.com/Djones-qa/ai-ecommerce-qa-strategy/actions/workflows/ci.yml)
+[![CI](https://github.com/Djones-qa/ai-ecommerce-qa-strategy/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Djones-qa/ai-ecommerce-qa-strategy/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue?logo=python)](https://www.python.org)
 
